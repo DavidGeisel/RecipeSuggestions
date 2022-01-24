@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/style.css">
+    <title>Please enter your ingredients</title>
+</head>
+
+<body>
+    <div class="container">
+        <img src="static/drawing_kochtopf.png" class="logo">
+        <!-- to do -->
+        {% if message %}
+            <p class="message">{{ message | safe }}</p>
+        {% endif %}
+        <form action="/submit" method="post">
+            <div class="form-group">
+                <h3>Customer Name</h3>
+                <input type="text" name="customer" id="" placeholder="Name of cook">
+
+            </div>
+
+            <div class="form-group">
+                <h3>Please indicate the ingredients you have on hand.</h3>
+                <textarea name="comments" id="" cols="30" rows="10"
+                    placeholder="Insert the ingredients you have on hand to cook your meal (comma separated items)."></textarea>
+            </div>
+            <input type="submit" value="submit" class="btn" />
+        </form>
+    </div>
+</body>
+
+</html>

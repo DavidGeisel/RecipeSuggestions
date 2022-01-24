@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="../static/style.css" />
+    <title>Thank You!</title>
+
+    {% if message %}
+    <p class="message">{{ message | safe }}</p>
+    {% endif %}
+
+  </head>
+  <body>
+    <div class="container">
+      <h1>You did not enter any ingredients. </h1>
+      <h2>Maybe you want to go shopping first?</h2>
+    </div>
+  </body>
+</html>
