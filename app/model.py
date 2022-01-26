@@ -4,7 +4,9 @@ import ast
 # Import linear_kernel
 from sklearn.metrics.pairwise import linear_kernel
 #Import TfIdfVectorizer (scikit-learn)
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import MultiLabelBinarizer
 
 
 def load_recipe_data():
@@ -15,7 +17,7 @@ def load_recipe_data():
     raw_recipes -- dataframe of recipes
     '''
 
-    data_path = "/home/david/Projects/Hackathons/DeveloperWeek2022/RecipeSuggestions/data/"
+    data_path = "../data/"
     raw_recipes = pd.read_csv(data_path + "RAW_recipes.csv", converters={'ingredients': ast.literal_eval})
     
     return raw_recipes
@@ -82,10 +84,12 @@ def produce_recommendations(my_ingredients):
     raw_recipes = load_recipe_data()
 
     # Exclude recipes with to many ingredients
-    df = raw_recipes[raw_recipes["n_ingredients"] < 1.5*len(my_ingredients)]
+    df = raw_recipes[raw_recipes["n_ingredients"] < len(my_ingredients)]
+
+    print("Max nr ingredients in recipes: ", df['n_ingredients'].max())
 
     # only use important columns of data
-    selection = ["name", "id", "minutes", "ingredients"]
+    selection = ["name", "id", "minutes", "steps", "ingredients"]
     df = df[selection]
 
     # get random subset of data (complete dataset cannot be processed)
@@ -95,6 +99,9 @@ def produce_recommendations(my_ingredients):
     # add dummy recipe built from input ingredients list to dataframe
     df, idx_dummy = add_dummy_recipe(df=df, ingredients=my_ingredients)
 
+    #----------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------
+    '''
     # calculate cosine similarities
     tfidf = TfidfVectorizer()
     
@@ -103,7 +110,29 @@ def produce_recommendations(my_ingredients):
     
     # Compute the cosine similarity matrix
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-    
+    '''
+    #----------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------
+    '''
+    count_vec = MultiLabelBinarizer()
+    matrix = count_vec.fit_transform(df['ingredients'])
+    # Compute the cosine similarity matrix
+    cosine_sim = linear_kernel(matrix, matrix)
+    #print("Shape of cosine sim matrix: ", cosine_sim.shape)
+    '''
+    #----------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------
+    # convert lists of strings to strings
+    count_vec = CountVectorizer()
+    matrix = count_vec.fit_transform(df['ingredients'])
+    # Compute the cosine similarity matrix
+    cosine_sim = linear_kernel(matrix, matrix)
+    #----------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------
+
+
+
+
     # get reverse mapping of indices
     indices = pd.Series(df.index, index=df['ingredients']).drop_duplicates()
 
@@ -113,12 +142,21 @@ def produce_recommendations(my_ingredients):
     
     # select top 10 recommendations 
     sim_scores = sim_scores[1:11] # first one is dummy recipe itself
+
+    print("sim_scores: ", sim_scores)
     
     # get the recipe indices
     recipe_indices = [i[0] for i in sim_scores]
+
+    print("recipe_indices: ", recipe_indices)
     
     # return the top 10 most similar recipes
-    recommendations_df = raw_recipes.iloc[recipe_indices]
+    recommendations_df = df.loc[recipe_indices]
+
+    # remove dummy recipe from list of suggestions
+    if 'dummy' in recommendations_df['name'].values:
+        recommendations_df = recommendations_df.drop(recommendations_df[recommendations_df['name']=='dummy'].index)
+        
     
     return recommendations_df
 
