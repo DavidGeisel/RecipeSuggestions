@@ -3,6 +3,7 @@ import pandas as pd
 import ast
 # Import linear_kernel
 from sklearn.metrics.pairwise import linear_kernel
+from sklearn.metrics.pairwise import cosine_similarity
 #Import TfIdfVectorizer (scikit-learn)
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -17,8 +18,10 @@ def load_recipe_data():
     raw_recipes -- dataframe of recipes
     '''
 
-    data_path = "../data/"
-    raw_recipes = pd.read_csv(data_path + "RAW_recipes.csv", converters={'ingredients': ast.literal_eval})
+    #data_path = "../data/food-com/"
+    #raw_recipes = pd.read_csv(data_path + "RAW_recipes.csv", converters={'ingredients': ast.literal_eval})
+    data_path = "../data/salad-recipe-data/"
+    raw_recipes = pd.read_csv(data_path + "recipes_82k.csv")
     
     return raw_recipes
 
@@ -47,7 +50,7 @@ def add_dummy_recipe(df, ingredients):
     idx_dummy -- value of the id column of the dummy recipe
     '''
     
-    # assign an id for dummy recipe
+    ## assign an id for dummy recipe
     id_dummy = df["id"].max()+1
 
     # create data dict
@@ -69,7 +72,7 @@ def add_dummy_recipe(df, ingredients):
     return df, idx_dummy
 
 
-def produce_recommendations(my_ingredients):
+def produce_foot_com_recommendations(my_ingredients):
     '''
     function produces recommendations for recipes based on ingredients
 
@@ -83,10 +86,10 @@ def produce_recommendations(my_ingredients):
     # Load recipe data
     raw_recipes = load_recipe_data()
 
-    # Exclude recipes with to many ingredients
-    df = raw_recipes[raw_recipes["n_ingredients"] < len(my_ingredients)]
-
-    print("Max nr ingredients in recipes: ", df['n_ingredients'].max())
+    ## Exclude recipes with to many ingredients
+    #df = raw_recipes[raw_recipes["n_ingredients"] < len(my_ingredients)]
+    #print("Max nr ingredients in recipes: ", df['n_ingredients'].max())
+    df = raw_recipes
 
     # only use important columns of data
     selection = ["name", "id", "minutes", "steps", "ingredients"]
@@ -159,5 +162,73 @@ def produce_recommendations(my_ingredients):
         
     
     return recommendations_df
+
+
+def load_salad_recipes():
+    '''
+    Loads preprocessed recipe database.
+
+    Returns:
+    df -- pandas dataframe containing recipe database
+    '''
+    
+    df = pd.read_pickle("../data/Salad_Recipes.pkl")
+
+    return df
+
+
+def produce_salad_recommendations(my_ingredients):
+    '''
+    function produces recommendations for recipes based on ingredients
+
+    Arguments:
+    my_ingredients -- List of ingredients on which recommendations are based
+
+    Returns:
+    recommendations_df -- Dataframe with recommendations
+    '''
+
+    # Load recipe data
+    df = load_salad_recipes()
+
+    ## Exclude recipes with to many ingredients
+    df = df[df["n_ingredients"] < len(my_ingredients)]
+    print("Max nr ingredients in recipes: ", df['n_ingredients'].max())
+
+
+    # calculate similarities
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf.fit(df['parsed_ingredients'])
+    tfidf_recipe = tfidf.transform(df['parsed_ingredients'])
+    
+    # concatenate my_ingredients input into one string and convert to lower case
+    my_ingredients = ' '.join(my_ingredients).lower()
+
+    # use our pretrained tfidf model to encode our input ingredients
+    input_ingredients_tfidf = tfidf.transform([my_ingredients])
+    
+    # calculate cosine similarity between actual recipe ingreds and input ingreds
+    cos_sim = map(lambda x: cosine_similarity(input_ingredients_tfidf, x), tfidf_recipe)
+    scores = list(cos_sim)
+
+    # getting top 5 recomendations
+    top_score = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:5]
+    recommendation_df = pd.DataFrame(columns = ['recipe_name', 'ingredients','cooking_method','cuisine', 'score' ])
+    count = 0
+
+    for i in top_score:
+        #print("top_score = ", i)
+        #print("recipe name: ", df.iloc[i]['recipe_name'])
+
+        recommendation_df.at[count, 'recipe_name'] = df.iloc[i]['recipe_name']
+        recommendation_df.at[count, 'ingredients'] = df.iloc[i]['parsed_ingredients']
+        recommendation_df.at[count, 'cooking_method'] = df.iloc[i]['cooking_method']
+        recommendation_df.at[count, 'cuisine'] = df.iloc[i]['cuisine']
+        recommendation_df.at[count, 'score'] = "{:.3f}".format(float(scores[i]))
+        count += 1
+
+    print(recommendation_df)
+    
+    return recommendation_df
 
 
