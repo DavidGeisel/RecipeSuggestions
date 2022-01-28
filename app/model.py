@@ -213,7 +213,12 @@ def produce_salad_recommendations(my_ingredients):
 
     # getting top 5 recomendations
     top_score = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:5]
-    recommendation_df = pd.DataFrame(columns = ['recipe_name', 'ingredients','cooking_method','cuisine', 'score' ])
+    recommendation_df = pd.DataFrame(columns = ['recipe_name', 
+    'ingredients',
+    'cooking_method',
+    'cuisine',
+    'image', 
+    'score' ])
     count = 0
 
     for i in top_score:
@@ -224,6 +229,7 @@ def produce_salad_recommendations(my_ingredients):
         recommendation_df.at[count, 'ingredients'] = df.iloc[i]['parsed_ingredients']
         recommendation_df.at[count, 'cooking_method'] = df.iloc[i]['cooking_method']
         recommendation_df.at[count, 'cuisine'] = df.iloc[i]['cuisine']
+        recommendation_df.at[count, 'cuisine'] = df.iloc[i]['image']
         recommendation_df.at[count, 'score'] = "{:.3f}".format(float(scores[i]))
         count += 1
 

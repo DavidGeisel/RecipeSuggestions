@@ -3,6 +3,21 @@ data/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+Notebooks/Untitled.ipynb 
+
+# Pictures
+app/static/Blue_plate.png
+app/static/Blue_plate.svg
+app/static/Cartoon_Spoon.svg
+app/static/Chrisdesign_Onion.svg
+app/static/Erbsen.svg
+app/static/Loeffel-Holz.svg
+app/static/Tomate.svg
+app/static/Topf-coloured.svg
+app/static/What-to-cook.svg
+app/static/broccoli-plant-publicdomainvectors.org.ai
+app/static/broccoli-plant-publicdomainvectors.org.eps
+app/static/broccoli-plant-publicdomainvectors.org.zip
 
 # Word Documents
 ElevatorPitch.docx

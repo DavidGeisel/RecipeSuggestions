@@ -1,7 +1,12 @@
+from cmath import nan
 import os
 from flask import Flask, flash, render_template, request
 from matplotlib.style import context
 import pandas as pd
+import ast 
+import nltk
+from nltk import tokenize
+nltk.download('punkt')
 
 from model import produce_salad_recommendations
 from model import produce_foot_com_recommendations
@@ -71,16 +76,34 @@ def submit():
         
         # Produce recommendations
         recommendations_df = produce_salad_recommendations(my_ingredients=ingredients_list)
+        # ... get name of recipe as string
         recipe_name = recommendations_df.iloc[0]["recipe_name"]
-        recipe_ingredients = recommendations_df.iloc[0]["ingredients"]
-        recipe_steps = recommendations_df.iloc[0]["cooking_method"]
-        print(recipe_steps)
+        # ... get needed ingredients as list of strings
+        recipe_ingredients = recommendations_df.iloc[0]["ingredients"].split()
+        # ... get steps of cooking as list of strings (each step one item)
+        recipe_steps = ast.literal_eval(recommendations_df.iloc[0]["cooking_method"])
+        tokenizer = nltk.data.load('tokenizers/punkt/english.pickle') # convert sting into sentences
+        steps = tokenize.sent_tokenize(recipe_steps[0])
+        counter = 1 # add numbers to steps
+        for i in range(0, len(steps)):
+            steps[i] = str(counter) + ". " + steps[i]
+            counter+=1
+        # ... get url of image for cooked meal
+        img = recommendations_df.iloc[0]["image"]
+        print("URL of image: ", img)
+        print("type image: ", type(img))
+        if type(img) == float:
+            img = "static/Blue_plate.png"
+        
+        print("Final image used: ", img)
 
+        # render success page
         return render_template('success.html', message=f"Successfull db response",
         ingredients_list=ingredients_list,
         recipe_name=recipe_name,
         recipe_ingredients=recipe_ingredients,
-        recipe_steps=recipe_steps)
+        recipe_steps=steps,
+        recipe_image=img)
         
 
 
