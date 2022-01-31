@@ -1,5 +1,10 @@
 # What-to-cook
 
+
+<img src="static/What-to-cook.png"
+     style="float: left; margin-right: 10px;" />
+
+
 ## App producing recommendations for cooking recipes based on available ingredients
 
 
@@ -16,8 +21,13 @@ The recommendations are ordered by the ratings of many users and can be filtered
 All images used are available within the public domain. 
 
 Cooking Pot: https://freesvg.org/cooking-pot
+
 Spoon: https://publicdomainvectors.org/en/free-clipart/Simple-spoon-vector-image/19331.html
+
 Plate: https://publicdomainvectors.org/en/free-clipart/Blue-dinner-plate-vector-illustration/12387.html
+
 Tomato: https://publicdomainvectors.org/en/free-clipart/Vector-drawing-of-shiny-tomato/24533.html
+
 Onion: https://publicdomainvectors.org/en/free-clipart/Onion-vector-image/4407.html
+
 Peas: https://publicdomainvectors.org/en/free-clipart/Peas/38667.html

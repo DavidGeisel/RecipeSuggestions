@@ -4,6 +4,10 @@ data/
 # Jupyter Notebook
 .ipynb_checkpoints
 Notebooks/Untitled.ipynb 
+Notebooks/NLP_Tutorial.ipynb 
+
+# Unused files
+app/old_model.py
 
 # Pictures
 app/static/Blue_plate.png

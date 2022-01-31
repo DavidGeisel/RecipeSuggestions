@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/style.css">
+    <title>Please enter your ingredients</title>
+</head>
+
+
+<body>
+    <div class="container">
+        <h1>Your selected recipe: </h1>
+        <h2 style="color:red;">{{ recipe_name | safe }}</h2>
+
+        <img class="logo" src= {{ recipe_image | safe }}>
+
+        <h2 style="color:green;">Ingredients needed: </h2>
+        {% for item in recipe_ingredients %}
+            <tr>
+                <p>{{item}}</p></tr>
+            </tr>
+        {% endfor %}
+        
+        <br> <br>
+
+        <h2 style="color:blue;">Cooking steps:</h2>
+        
+        {% for item in recipe_steps %}
+            <tr>
+                <p>{{item}}</p></tr><br>
+            </tr>
+        {% endfor %}
+
+        <h2>Thank you for choosing our app! Hope to see you again!</h2>
+        <img src="/static/What-to-cook.png" class="logo">
+
+    </div>
+</body>
+
+</html>
