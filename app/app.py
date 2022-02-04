@@ -29,13 +29,14 @@ Enable development and production mode.
 dev: local developement
 production: online version of the app
 '''
-ENV = 'dev'
+ENV = 'production'
 if ENV == 'dev':
     app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:newPassword@localhost/RecipeRecommendations'
+    #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:newPassword@localhost/RecipeRecommendations'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MySQLPW@localhost/RecipeRecommendations'
 else:
     app.debug = False 
-    app.config['SQLALCHEMY_DATABASE_URI'] = ''
+    app.config['SQLALCHEMY_DATABASE_URI'] = '...'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -171,6 +172,13 @@ def submit():
         rec_ingredients = recommendations_df.iloc[0:3]["ingredients"]
         # --extract ids from recommended recipes
         rec_ids = recommendations_df.iloc[0:3]['id']
+        print("rec_ids: ", rec_ids)
+        #print("rec_ids[0]: ", rec_ids[0])
+        session["rec_ids[0]"] = rec_ids[0]
+        print("rec_ids[0]: ", rec_ids[0])
+        print("session.get(rec_ids[0]): ", session.get("rec_ids[0]"))
+        session["rec_ids[1]"] = rec_ids[1]
+        session["rec_ids[2]"] = rec_ids[2]
         
         ## --extract cooking mehtods of the first three recommended recipes
         #cooking_methods = recommendations_df.iloc[0:3]["cooking_method"]
@@ -215,6 +223,9 @@ def follow_up():
 
         # Identify selected recommendation
         selected_recommendation = int(request.form['selected_recommendation'])
+        print("Selected recommendation: ", selected_recommendation)
+        session["selected_recommendation"] = selected_recommendation
+
         #print("Selected recipe recommendation index: ", selected_recommendation)
         #print("Recipe_name: ", recommendations_df.iloc[selected_recommendation]["recipe_name"])
         #print("Cooking_method: ", recommendations_df.iloc[selected_recommendation]["cooking_method"])
@@ -223,7 +234,7 @@ def follow_up():
         # --store recipe name in session
         session["recipe_name"] = recipe_name
         # --store recipe id in session
-        session["recipe_id"] = 9999
+        #session["recipe_id"] = 9999
         # ... get needed ingredients as list of strings
         recipe_ingredients = recommendations_df.iloc[selected_recommendation]["ingredients"].split()
         # ... get steps of cooking as list of strings (each step one item)
@@ -275,13 +286,29 @@ def thank_you():
         customer = session.get("customer")
         print("session.get(customer): ", customer)
         # --get recipe_id from flask session
-        recipe_id = session.get("recipe_id")
+        selected_recommendation = session.get("selected_recommendation")
+        print("selected_recommendation: ", selected_recommendation)
+
+        if selected_recommendation == 0:
+            recipe_id = session.get("rec_ids[0]")
+            print("0: ", recipe_id)
+        elif selected_recommendation == 1:
+            recipe_id = session.get("rec_ids[1]")
+            print("1: ", recipe_id)
+        elif selected_recommendation == 2:
+            recipe_id = session.get("rec_ids[2]")
+            print("2: ", recipe_id)
+        else:
+            print("No recipe id could be identified. Insert dummy.")
+            recipe_id = 999999
+        print("id assesset recommendation: ", recipe_id)
+        # --get recipe name
         print("session.get(recipe_name): ", session.get("recipe_name"))
 
 
         # add assessment to database
         data = Assessment(customer=session.get("customer"), 
-                          recipe_id=session.get("recipe_id"), 
+                          recipe_id=recipe_id, 
                           rating=app_rating, 
                           comments=comments)
         db.session.add(data)

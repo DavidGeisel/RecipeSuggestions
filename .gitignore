@@ -5,9 +5,20 @@ data/
 .ipynb_checkpoints
 Notebooks/Untitled.ipynb 
 Notebooks/NLP_Tutorial.ipynb 
+Notebooks/Tutorial.ipynb
 
 # Unused files
 app/old_model.py
+
+# VSCode
+.vscode
+
+# Python
+__pychache__
+app/__pycache__/app.cpython-310.pyc
+app/__pycache__/model.cpython-310.pyc
+app/flask_session/318c32e564669b0838e86733f9751ff3
+
 
 # Pictures
 app/static/Blue_plate.png

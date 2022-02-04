@@ -1,8 +1,6 @@
 # What-to-cook
 
-
-<img src="static/What-to-cook.png"
-     style="float: left; margin-right: 10px;" />
+![What-to-cook](static/What-to-cook.png)
 
 
 ## App producing recommendations for cooking recipes based on available ingredients
@@ -17,7 +15,11 @@ The goal of our **What-to-cook** app is to present the user recommendations of r
 The recommendations are ordered by the ratings of many users and can be filtered by various additional topics.
 
 
-## Licences and sources for images:
+## Licences and sources 
+### Recipe data
+Recipe data can be found via [link](https://www.kaggle.com/snehallokesh31096/recipe)
+
+### Images
 All images used are available within the public domain. 
 
 Cooking Pot: https://freesvg.org/cooking-pot

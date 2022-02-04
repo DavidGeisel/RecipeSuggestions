@@ -19,7 +19,8 @@ def load_salad_recipes():
     df -- pandas dataframe containing recipe database
     '''
     
-    df = pd.read_pickle("../data/Salad_Recipes.pkl")
+    #df = pd.read_pickle("../data/Salad_Recipes.pkl")
+    df = pd.read_pickle("../data/parsed_recipes.pkl")
     # TODO: insert data from SQL database
 
     return df
@@ -64,7 +65,6 @@ def produce_salad_recommendations(my_ingredients):
     recommendation_df = pd.DataFrame(columns = ['id', 'recipe_name', 
     'ingredients',
     'cooking_method',
-    'cuisine',
     'image', 
     'score' ])
     # --insert recommendations into dataframe
@@ -76,8 +76,7 @@ def produce_salad_recommendations(my_ingredients):
         recommendation_df.at[count, 'recipe_name'] = df.iloc[i]['recipe_name']
         recommendation_df.at[count, 'ingredients'] = df.iloc[i]['parsed_ingredients']
         recommendation_df.at[count, 'cooking_method'] = df.iloc[i]['cooking_method']
-        recommendation_df.at[count, 'cuisine'] = df.iloc[i]['cuisine']
-        recommendation_df.at[count, 'cuisine'] = df.iloc[i]['image']
+        recommendation_df.at[count, 'image'] = df.iloc[i]['image']
         recommendation_df.at[count, 'score'] = "{:.3f}".format(float(scores[i]))
         count += 1
 
