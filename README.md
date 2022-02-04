@@ -1,6 +1,6 @@
 # What-to-cook
 
-![What-to-cook](static/What-to-cook.png)
+![What-to-cook](app/static/What-to-cook.png)
 
 
 ## App producing recommendations for cooking recipes based on available ingredients
