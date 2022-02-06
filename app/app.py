@@ -1,8 +1,10 @@
 from cmath import nan
 import os
+from subprocess import call
 from flask import Flask, flash, render_template, request, session
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
 from matplotlib.style import context
 import pandas as pd
 import ast 
@@ -12,6 +14,8 @@ nltk.download('punkt')
 from datetime import datetime
 
 from model import produce_salad_recommendations
+from load_recipes import load_salad_recipes
+from load_recipes import select_recommendations
 
 '''
 Configure app and session
@@ -29,14 +33,17 @@ Enable development and production mode.
 dev: local developement
 production: online version of the app
 '''
-ENV = 'production'
+ENV = 'dev'
 if ENV == 'dev':
     app.debug = True
     #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:newPassword@localhost/RecipeRecommendations'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MySQLPW@localhost/RecipeRecommendations'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MySQLPW@localhost/WhatToCook'
 else:
     app.debug = False 
-    app.config['SQLALCHEMY_DATABASE_URI'] = '...'
+    # store url in .txt file
+    with open('heroku_postgresql_url.txt', 'r') as file:
+        heroku_postgresql_url = file.read().rstrip()
+    app.config['SQLALCHEMY_DATABASE_URI'] = heroku_postgresql_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -85,12 +92,14 @@ class Assessment(db.Model):
     '''
     __tablename__ = 'assessment'
     id = db.Column(db.Integer, primary_key=True)
+    call_id = db.Column(db.Integer)
     customer = db.Column(db.String(200))
     recipe_id = db.Column(db.Integer)
     rating = db.Column(db.Integer)
     comments = db.Column(db.Text())
 
-    def __init__(self, customer, recipe_id, rating, comments):
+    def __init__(self, call_id, customer, recipe_id, rating, comments):
+        self.call_id = call_id
         self.customer = customer
         self.recipe_id = recipe_id
         self.rating = rating
@@ -119,6 +128,8 @@ def db_add_search_call(customer, ingredients, rec_ids):
                        rec_3_recipe_id=rec_ids[2])
     db.session.add(data)
     db.session.commit()
+
+    return data.call_id
 
 
 
@@ -162,10 +173,25 @@ def submit():
         
 
         # Produce recommendations
+        
+        '''
         # --get recommendations dataframe
         recommendations_df = produce_salad_recommendations(my_ingredients=ingredients_list)
+        print("!!!!!!!!!!!!!!!!!!!!!")
         # --write dataframe to pickle to use it later on
-        recommendations_df.to_pickle("../data/recommendations_df.pkl")
+        recommendations_df.to_pickle("recommendations_df.pkl")
+        print("!!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!!!")
+        '''
+        top_score = produce_salad_recommendations(my_ingredients=ingredients_list)
+        
+    
+        
+        print("at least until here it works!")
+        rec_ids, rec_names, rec_ingredients = select_recommendations(top_score=top_score)
+        #------------------------------------------------------
+        #------------------------------------------------------
+        '''
         # --extract names of the first three recommended recipes
         rec_names = recommendations_df.iloc[0:3]["recipe_name"]
         # --extract ingredients of the first three recommended recipes
@@ -173,6 +199,7 @@ def submit():
         # --extract ids from recommended recipes
         rec_ids = recommendations_df.iloc[0:3]['id']
         print("rec_ids: ", rec_ids)
+        '''
         #print("rec_ids[0]: ", rec_ids[0])
         session["rec_ids[0]"] = rec_ids[0]
         print("rec_ids[0]: ", rec_ids[0])
@@ -191,10 +218,13 @@ def submit():
         #    print("Ingredients needed: ", rec_ingredients[i])
         
         # add data to database
-        db_add_search_call(customer=customer, 
+        call_id = db_add_search_call(customer=customer, 
         ingredients=ingredients, 
         rec_ids=rec_ids)
+        # --store call id in session to connect with assessment
+        session["call_id"] = call_id
 
+        
         # Render recommendations
         return render_template('recommendations.html', message=f"Successfull db response",
         ingredients_list=ingredients_list,
@@ -214,7 +244,7 @@ def follow_up():
         # Load dataframe with recommendations
         print('**************')
         print('SelectedRecommendation:')
-        recommendations_df = pd.read_pickle("../data/recommendations_df.pkl")
+        recommendations_df = pd.read_pickle("database/recommendations_df.pkl")
         print(recommendations_df)
         # TODO: get this data from SQL databse?
         
@@ -307,7 +337,8 @@ def thank_you():
 
 
         # add assessment to database
-        data = Assessment(customer=session.get("customer"), 
+        data = Assessment(call_id=session.get("call_id"),
+                          customer=session.get("customer"), 
                           recipe_id=recipe_id, 
                           rating=app_rating, 
                           comments=comments)

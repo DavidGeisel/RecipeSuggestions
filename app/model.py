@@ -9,21 +9,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 
-
-
-def load_salad_recipes():
-    '''
-    Loads preprocessed recipe database.
-
-    Returns:
-    df -- pandas dataframe containing recipe database
-    '''
-    
-    #df = pd.read_pickle("../data/Salad_Recipes.pkl")
-    df = pd.read_pickle("../data/parsed_recipes.pkl")
-    # TODO: insert data from SQL database
-
-    return df
+from load_recipes import load_salad_recipes
 
 
 def produce_salad_recommendations(my_ingredients):
@@ -38,7 +24,7 @@ def produce_salad_recommendations(my_ingredients):
     '''
 
     # Load recipe data
-    df = load_salad_recipes()
+    df = load_salad_recipes(ENV="Debug")
 
     ## Exclude recipes with to many ingredients
     df = df[df["n_ingredients"] <= len(my_ingredients)*1.5]
@@ -61,6 +47,9 @@ def produce_salad_recommendations(my_ingredients):
     # Collect best recommendations in dataframe
     # --getting top 5 recomendations
     top_score = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:5]
+    
+    
+    '''
     # --initialize dataframe
     recommendation_df = pd.DataFrame(columns = ['id', 'recipe_name', 
     'ingredients',
@@ -69,6 +58,7 @@ def produce_salad_recommendations(my_ingredients):
     'score' ])
     # --insert recommendations into dataframe
     count = 0
+    print("top_score: ", top_score)
     for i in top_score:
         #print("top_score = ", i)
         #print("recipe name: ", df.iloc[i]['recipe_name'])
@@ -80,8 +70,14 @@ def produce_salad_recommendations(my_ingredients):
         recommendation_df.at[count, 'score'] = "{:.3f}".format(float(scores[i]))
         count += 1
 
+        print("i in df: ", i)
+        print(df.iloc[i]['id'])
     print("recommendation_df: ", recommendation_df)
+    print("Successfully produced recommendations!")
     
     return recommendation_df
+    '''
+
+    return top_score
 
 
