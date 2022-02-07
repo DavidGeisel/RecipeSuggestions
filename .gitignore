@@ -1,47 +1,25 @@
+# Notebooks
+.ipynb_checkpoints
+Notebooks/others/
+Notebooks/TestFunctionalities.ipynb 
+
+# docs
+docs/
+
+# Python
+__pychache__
+
+# flask sessions
+flask_session/
+
 # Distribution / packaging
 data/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-Notebooks/
-Notebooks/Untitled.ipynb 
-Notebooks/NLP_Tutorial.ipynb 
-Notebooks/Tutorial.ipynb
-
 # Unused files
-app/old_model.py
-app/database
+app/flask_session/
+app/__pycache__/
+app/templates/old_success.html
 
 # VSCode
 .vscode
 
-# Python
-__pychache__
-app/__pycache__/app.cpython-310.pyc
-app/__pycache__/model.cpython-310.pyc
-app/flask_session/318c32e564669b0838e86733f9751ff3
-app/load_recipes.py
-flask_session/
-
-
-# Pictures
-app/static/Blue_plate.png
-app/static/Blue_plate.svg
-app/static/Cartoon_Spoon.svg
-app/static/Chrisdesign_Onion.svg
-app/static/Erbsen.svg
-app/static/Loeffel-Holz.svg
-app/static/Tomate.svg
-app/static/Topf-coloured.svg
-app/static/What-to-cook.svg
-app/static/broccoli-plant-publicdomainvectors.org.ai
-app/static/broccoli-plant-publicdomainvectors.org.eps
-app/static/broccoli-plant-publicdomainvectors.org.zip
-
-# Word Documents
-ElevatorPitch.docx
-.~lock.ElevatorPitch.docx#
-docs/
-
-# Text documents
-app/heroku_postgresql_url.txt

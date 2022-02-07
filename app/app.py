@@ -1,5 +1,6 @@
 from cmath import nan
 import os
+import re
 from subprocess import call
 from flask import Flask, flash, render_template, request, session
 from flask_session import Session
@@ -7,15 +8,12 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from matplotlib.style import context
 import pandas as pd
-import ast 
-import nltk
-from nltk import tokenize
-nltk.download('punkt')
 from datetime import datetime
 
 from model import produce_salad_recommendations
 from load_recipes import load_salad_recipes
 from load_recipes import select_recommendations
+from load_recipes import show_final_recipe
 
 '''
 Configure app and session
@@ -36,8 +34,8 @@ production: online version of the app
 ENV = 'dev'
 if ENV == 'dev':
     app.debug = True
-    #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:newPassword@localhost/RecipeRecommendations'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MySQLPW@localhost/WhatToCook'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:newPassword@localhost/RecipeRecommendations'
+    #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MySQLPW@localhost/WhatToCook'
 else:
     app.debug = False 
     # store url in .txt file
@@ -129,6 +127,8 @@ def db_add_search_call(customer, ingredients, rec_ids):
     db.session.add(data)
     db.session.commit()
 
+    print("data.call_id = ", data.call_id)
+
     return data.call_id
 
 
@@ -173,49 +173,16 @@ def submit():
         
 
         # Produce recommendations
-        
-        '''
-        # --get recommendations dataframe
-        recommendations_df = produce_salad_recommendations(my_ingredients=ingredients_list)
-        print("!!!!!!!!!!!!!!!!!!!!!")
-        # --write dataframe to pickle to use it later on
-        recommendations_df.to_pickle("recommendations_df.pkl")
-        print("!!!!!!!!!!!!!!!!!!!!!")
-        print("!!!!!!!!!!!!!!!!!!!!!")
-        '''
-        top_score = produce_salad_recommendations(my_ingredients=ingredients_list)
-        
-    
-        
-        print("at least until here it works!")
-        rec_ids, rec_names, rec_ingredients = select_recommendations(top_score=top_score)
-        #------------------------------------------------------
-        #------------------------------------------------------
-        '''
-        # --extract names of the first three recommended recipes
-        rec_names = recommendations_df.iloc[0:3]["recipe_name"]
-        # --extract ingredients of the first three recommended recipes
-        rec_ingredients = recommendations_df.iloc[0:3]["ingredients"]
-        # --extract ids from recommended recipes
-        rec_ids = recommendations_df.iloc[0:3]['id']
-        print("rec_ids: ", rec_ids)
-        '''
-        #print("rec_ids[0]: ", rec_ids[0])
+        # -- calculate cosine similarities between all recipes and ingredients
+        cos_scores = produce_salad_recommendations(my_ingredients=ingredients_list)
+        # -- select top three recommendations
+        rec_ids, rec_names, rec_ingredients = select_recommendations(cos_scores=cos_scores, 
+        nr_ingredients=len(ingredients))
+        # -- store ids of recommendations in flask session
         session["rec_ids[0]"] = rec_ids[0]
-        print("rec_ids[0]: ", rec_ids[0])
-        print("session.get(rec_ids[0]): ", session.get("rec_ids[0]"))
         session["rec_ids[1]"] = rec_ids[1]
         session["rec_ids[2]"] = rec_ids[2]
         
-        ## --extract cooking mehtods of the first three recommended recipes
-        #cooking_methods = recommendations_df.iloc[0:3]["cooking_method"]
-        ## --extract tags associated with the recommended recipes
-        #tags = recommendations_df.iloc[0:3]["tags"]
-        
-        #print("Top recommended recipes: ")
-        #for i in range(3):
-        #    print(rec_names[i])
-        #    print("Ingredients needed: ", rec_ingredients[i])
         
         # add data to database
         call_id = db_add_search_call(customer=customer, 
@@ -241,66 +208,41 @@ User can insert feedback on the app at the bottom.
 def follow_up():
     if request.method == 'POST':
         
-        # Load dataframe with recommendations
-        print('**************')
-        print('SelectedRecommendation:')
-        recommendations_df = pd.read_pickle("database/recommendations_df.pkl")
-        print(recommendations_df)
-        # TODO: get this data from SQL databse?
         
-
-        print("session.get(customer): ", session.get("customer"))
-
         # Identify selected recommendation
         selected_recommendation = int(request.form['selected_recommendation'])
         print("Selected recommendation: ", selected_recommendation)
         session["selected_recommendation"] = selected_recommendation
 
-        #print("Selected recipe recommendation index: ", selected_recommendation)
-        #print("Recipe_name: ", recommendations_df.iloc[selected_recommendation]["recipe_name"])
-        #print("Cooking_method: ", recommendations_df.iloc[selected_recommendation]["cooking_method"])
-        # ... get name of recipe as string
-        recipe_name = recommendations_df.iloc[selected_recommendation]["recipe_name"]
-        # --store recipe name in session
-        session["recipe_name"] = recipe_name
-        # --store recipe id in session
-        #session["recipe_id"] = 9999
-        # ... get needed ingredients as list of strings
-        recipe_ingredients = recommendations_df.iloc[selected_recommendation]["ingredients"].split()
-        # ... get steps of cooking as list of strings (each step one item)
-        recipe_steps = ast.literal_eval(recommendations_df.iloc[selected_recommendation]["cooking_method"])
-        print("recipe_steps: ", recipe_steps)
-        print("type(recipe_steps): ", type(recipe_steps))
-        tokenizer = nltk.data.load('tokenizers/punkt/english.pickle') # convert sting into sentences
-        #steps = tokenize.sent_tokenize(recipe_steps[0])
-        #print("steps: ", steps)
-        steps = recipe_steps
-        counter = 1 # add numbers to steps
-        for i in range(0, len(steps)):
-            steps[i] = str(counter) + ". " + steps[i]
-            counter+=1
-        # ... get url of image for cooked meal
-        img = recommendations_df.iloc[selected_recommendation]["image"]
-        print("URL of image: ", img)
-        print("type image: ", type(img))
-        if type(img) == float:
-            img = "/static/Blue_plate.png"
+        recipe_id = None
+        if selected_recommendation == 0:
+            recipe_id = session.get("rec_ids[0]")
+        elif selected_recommendation == 1:
+            recipe_id = session.get("rec_ids[1]")
+        else:
+            recipe_id = session.get("rec_ids[2]")
         
-        print("Final image used: ", img)
+        
+        
+        recipe_name, recipe_ingredients, recipe_steps, recipe_image = show_final_recipe(recipe_id)
+        
 
         # render success page
         return render_template('recommended_recipe.html', message=f"Successfull db response",
         recipe_name=recipe_name,
         recipe_ingredients=recipe_ingredients,
-        recipe_steps=steps,
-        recipe_image=img)
+        recipe_steps=recipe_steps,
+        recipe_image=recipe_image)
+        
+        
 
 
 
-#@app.route('/')
-#def index():
-#    return render_template('index.html')
+'''
+Thank you page after user inserted feedback.
 
+User feedback will be inserted to database.
+'''
 @app.route('/submit/SelectedRecommendation/ThankYou', methods=['GET', 'POST'])
 def thank_you():
     if request.method == 'POST':
@@ -335,9 +277,10 @@ def thank_you():
         # --get recipe name
         print("session.get(recipe_name): ", session.get("recipe_name"))
 
+        print("current call_id: ", session.get("call_id"))
 
         # add assessment to database
-        data = Assessment(call_id=session.get("call_id"),
+        data = Assessment(call_id=int(session.get("call_id")),
                           customer=session.get("customer"), 
                           recipe_id=recipe_id, 
                           rating=app_rating, 
