@@ -3,6 +3,11 @@
 ![What-to-cook](app/static/What-to-cook.png)
 
 
+## Test the app
+
+Click here: [WhatToCook](https://whattocook-app.herokuapp.com/)
+
+
 ## App producing recommendations for cooking recipes based on available ingredients
 
 
