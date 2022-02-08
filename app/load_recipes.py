@@ -6,6 +6,8 @@ from nltk import tokenize
 nltk.download('punkt')
 import ast 
 
+
+
 def load_salad_recipes(ENV="Debug"):
     '''
     Loads preprocessed recipe database from postgresql table to pandas dataframe
@@ -25,13 +27,12 @@ def load_salad_recipes(ENV="Debug"):
         df = pd.read_sql('recipes', dbConnection)
     else:
         heroku_postgresql_url = "..."
-        #with open('heroku_postgresql_url.txt', 'r') as file:
-        #   heroku_postgresql_url = file.read().rstrip()
         engine = create_engine(heroku_postgresql_url)
         dbConnection = engine.connect()
         df = pd.read_sql('recipes', dbConnection)
     
     return df
+
 
 
 def select_recommendations(cos_scores, nr_ingredients):
@@ -46,8 +47,6 @@ def select_recommendations(cos_scores, nr_ingredients):
     rec_names -- list of recipe names of top recommendations
     rec_ingredients -- list of lists of ingredients needed for top recommendations
     '''
-
-    #print("top_score: ", top_score)
 
     # load recipe data
     df = load_salad_recipes(ENV="Debug")
@@ -73,7 +72,7 @@ def select_recommendations(cos_scores, nr_ingredients):
 
 def show_final_recipe(recipe_id):
     # load recipe data
-    df = load_salad_recipes(ENV="Debug")
+    df = load_salad_recipes(ENV="Production")
     
     print("recipe_id: ", recipe_id)
     selected_recipe = df[df["id"] == recipe_id]
@@ -103,5 +102,7 @@ def show_final_recipe(recipe_id):
         recipe_image = "/static/Blue_plate.png"
     # to many links not available, so return blue plate
     recipe_image = "/static/Blue_plate.png"
+
+    
     
     return recipe_name, recipe_ingredients, recipe_steps, recipe_image

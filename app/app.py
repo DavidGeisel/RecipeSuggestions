@@ -6,7 +6,6 @@ from flask import Flask, flash, render_template, request, session
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
-from matplotlib.style import context
 import pandas as pd
 from datetime import datetime
 
@@ -14,6 +13,7 @@ from model import produce_salad_recommendations
 from load_recipes import load_salad_recipes
 from load_recipes import select_recommendations
 from load_recipes import show_final_recipe
+
 
 '''
 Configure app and session
@@ -25,23 +25,23 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 
+
 '''
 Enable development and production mode.
 
 dev: local developement
 production: online version of the app
 '''
-ENV = 'dev'
+ENV = 'production'
 if ENV == 'dev':
     app.debug = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:newPassword@localhost/RecipeRecommendations'
     #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MySQLPW@localhost/WhatToCook'
 else:
     app.debug = False 
-    # store url in .txt file
-    with open('heroku_postgresql_url.txt', 'r') as file:
-        heroku_postgresql_url = file.read().rstrip()
-    app.config['SQLALCHEMY_DATABASE_URI'] = heroku_postgresql_url
+    #heroku_postgresql_url = load_heroku_pstgresql_url()
+    #app.config['SQLALCHEMY_DATABASE_URI'] = heroku_postgresql_url
+    app.config['SQLALCHEMY_DATABASE_URI'] = "..."
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
